@@ -9,6 +9,10 @@
 using std::string;
 using std::stack;
 
+// algoritmo de shunting-yard, feito baseado no pseudocódigo da wikipedia
+
+constexpr bool DEBUG = false;
+
 enum Operador {
     SOMA = '+',
     SUBTRACAO = '-',
@@ -83,6 +87,9 @@ Operador emOperador(char s){
 }
 
 string acharProximaEntrada(string &entrada){
+    // fiz a leitura de entradas baseada no espaço por preguiça
+    // dá pra fazer um parser melhor facilmente por conta da modularização do código
+    // o caminho seria parsear por caractere e parar qdo for uma operação
     int pos = entrada.find(' ');
     string saida = entrada.substr(0, pos);
     entrada = entrada.substr(pos+1, string::npos);
@@ -91,6 +98,7 @@ string acharProximaEntrada(string &entrada){
 
 string tratarOperador(Operador opAtual, stack<Operador> &operadores){
     string saida;
+    // desempilha todas as operações _do parentese atual_ com maior prioridade
     while(
         (operadores.size() > 0 && operadores.top() != Operador::ABRE_PARENTESES)
         && precedencia(operadores.top()) >= precedencia(opAtual)
@@ -99,33 +107,39 @@ string tratarOperador(Operador opAtual, stack<Operador> &operadores){
         saida += char_operador;
         saida += ' ';
     }
+    // adiciona a operação atual na pilha de operações
     operadores.push(opAtual);
     return saida;
 }
 
 string tratarParentese(Operador parenteseAtual, stack<Operador> &operadores){
-    string saida;
     if (parenteseAtual == Operador::ABRE_PARENTESES){
         operadores.push(Operador::ABRE_PARENTESES);
-    } else {
-        while(operadores.top() != Operador::ABRE_PARENTESES){
-            if (operadores.size() == 0){
-                throw std::invalid_argument("Parenteses desbalanceados");
-            }
-            auto char_operador = operadores.top();
-            saida += char_operador;
-            saida += ' ';
-            operadores.pop();
-        }
-        if(operadores.top() != Operador::ABRE_PARENTESES){
+        return "";
+    }
+    string saida;
+
+    // desempilha as operações _do parentese atual_
+    // note que as operações menos prioritárias já foram desempilhadas
+    while(operadores.top() != Operador::ABRE_PARENTESES){
+        if (operadores.size() == 0){
             throw std::invalid_argument("Parenteses desbalanceados");
         }
+        auto char_operador = operadores.top();
+        saida += char_operador;
+        saida += ' ';
         operadores.pop();
     }
+    // exception handling
+    if(operadores.top() != Operador::ABRE_PARENTESES){
+        throw std::invalid_argument("Parenteses desbalanceados");
+    }
+    operadores.pop();
     return saida;
 }
 
 string printOperadores(stack<Operador> op){
+    // debug básico
     string ops;
     while (op.size()) {
         ops += op.top();
@@ -135,16 +149,21 @@ string printOperadores(stack<Operador> op){
     return ops;
 }
 
+void debugPrint(bool debug, string stringAtual, string saida, stack<Operador> operadores){
+    if(!debug) return;
+    std::cout
+        << "string atual: '" << stringAtual << "'\t"
+        << "saida: '" << saida << "'\t"
+        << "operadores: '" << printOperadores(operadores) << "'\n";
+}
+
 string transformarEntradaEmNotacaoPolonesa(string entrada) {
     entrada += ' ';
     string saida;
     string stringAtual = acharProximaEntrada(entrada);
     std::stack<Operador> operadores;
     while(stringAtual.length() > 0){
-        std::cout
-            << "string atual: '" << stringAtual << "'\t"
-            << "saida: '" << saida << "'\t"
-            << "operadores: '" << printOperadores(operadores) << "'\n";
+        debugPrint(DEBUG, stringAtual, saida, operadores);
         if (eOperador(stringAtual)){
             saida += tratarOperador(emOperador(stringAtual[0]), operadores);
         }
@@ -169,7 +188,9 @@ string transformarEntradaEmNotacaoPolonesa(string entrada) {
 int main(void) {
     string entrada = "( 1 + 2 ) * ( 3 + 4 * 5 )";
     std::cout
-        << "rodando exemplo " << entrada << ":\n"
-        << transformarEntradaEmNotacaoPolonesa(entrada) << std::endl;
+        << "rodando exemplo!\n"
+        "em notação usual:\t" << entrada << ":\n"
+        << "em notação polonesa:\t" << transformarEntradaEmNotacaoPolonesa(entrada) 
+        << std::endl;
     return 0;
 }
