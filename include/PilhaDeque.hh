@@ -1,31 +1,21 @@
 #pragma once
 #include "DequeEncadeado.hh"
 
-namespace exercicio{
+namespace exercicio {
 
-template<typename T>
-class PilhaDeque{
-    public:
-    DequeEncadeado<T> d;
+template <typename T>
+class PilhaDeque {
+ public:
+  DequeEncadeado<T> d;
 
-    bool push(T inserir) {
-        return d.insereFim(inserir);
-    }
+  bool push(T inserir) { return d.insereFim(inserir); }
 
-    int size() {
-        return d.size();
-    }
+  int size() { return d.size(); }
 
-    T pop() {
-        return d.removeFim();
-    }
+  T pop() { return d.removeFim(); }
 
-    T top() {
-        return d.costas();
-    }
+  T top() { return d.costas(); }
 
-    PilhaDeque(){
-        this->d = DequeEncadeado<T>();
-    }
+  PilhaDeque() { this->d = DequeEncadeado<T>(); }
 };
-}
+}  // namespace exercicio
